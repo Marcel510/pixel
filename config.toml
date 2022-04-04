@@ -90,3 +90,10 @@ file = "images/augsburg2.png"
 startx = 1304
 starty = 1948
 priority = 2
+
+[[structure]]
+name = "rwth1"
+file = "images/rwth+fh.png"
+startx = 1232
+starty = 1198
+priority = 3
