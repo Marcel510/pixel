@@ -1,0 +1,22 @@
+ignore_colors = [
+	[0, 0, 0, 0],
+	# [0, 0, 0, 255], # filter all black
+	[0xff, 0x00, 0xf8, 0xff]
+]
+
+version = 2
+
+[priorities]
+"0" = 0
+"1" = 1
+"2" = 5
+"3" = 10
+"4" = 20
+"5" = 40
+
+[[structure]]
+name = "uni-bw"
+file = "images/bw.png"
+startx =  844
+starty = 1174
+priority = 5
