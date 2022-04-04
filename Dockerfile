@@ -13,7 +13,7 @@ WORKDIR /usr/src/app
 RUN wget https://www.ipvanish.com/software/configs/configs.zip && \
     unzip configs.zip
 COPY openvpn.sh openvpn.sh
-
+COPY start.sh start.sh
 COPY package*.json ./
 RUN npm ci
 COPY bot.js .
