@@ -56,28 +56,13 @@ version = 17
 # starty = 753
 # priority = 0
 
-
 [[structure]]
-name = "logo2_outline"
-file = "images/logo_new_canvas_outline.png"
-startx = 1238
-starty = 1177
-priority = 7
-
-[[structure]]
-name = "logo2_core"
-file = "images/logo_new_canvas_core.png"
-startx = 1238
-starty = 1177
-priority = 6
-
-[[structure]]
-name = "logo2_other"
-file = "images/logo_new_canvas_other.png"
+name = "logo2"
+file = "images/logo_new_canvas.png"
+priority_file = "images/logo_new_canvas_prio.png"
 startx = 1238
 starty = 1177
 priority = 5
-
 
 # [[structure]]
 # name = "lmu"
