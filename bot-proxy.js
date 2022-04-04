@@ -25,7 +25,8 @@ signale.config({
 });
 
 
-var placeOrders = [];
+var ordersData = async function() { return { structures: {},priorities: {} } }();
+var canvas;
 const VERSION_NUMBER = 1;
 
 let args = process.argv.slice(2);
@@ -155,17 +156,18 @@ let rgbaJoinV = (a1, a2, rowSize = 2000, cellSize = 4) => {
     return result;
 };
 
-function shuffleWeighted(array) {
+async function shuffleWeighted(array) {
     for (const item of array) {
-        item.rndPriority = Math.round(placeOrders.priorities[item.priority] * Math.random());
+        item.rndPriority = Math.round((await ordersData).priorities[item.priority] * Math.random());
     }
     array.sort((a, b) => b.rndPriority - a.rndPriority);
 }
 
-function getPixelList() {
+async function getPixelList() {
     const structures = [];
+    const placeOrders=(await ordersData);
     for (const structureName in placeOrders.structures) {
-        shuffleWeighted(placeOrders.structures[structureName].pixels);
+        await shuffleWeighted(placeOrders.structures[structureName].pixels);
         structures.push(placeOrders.structures[structureName]);
     }
     shuffleWeighted(structures);
@@ -199,7 +201,7 @@ function t(token, time) {
 async function attemptPlace(entry) {
 
     const rgbaCanvas = await canvas;
-    const pixelList = getPixelList();
+    const pixelList = await getPixelList();
 
     let foundPixel = false;
     let wrongCount = 0;
@@ -260,7 +262,7 @@ async function attemptPlace(entry) {
  * @returns {Promise<number>}
  */
 async function place(x, y, color, entry) {
-    const token=await entry[5];
+    const token = await entry[5];
     const response = await fetch('https://gql-realtime-2.reddit.com/query', {
         method: 'POST',
         body: JSON.stringify({
@@ -324,7 +326,7 @@ async function place(x, y, color, entry) {
 
 
 async function getCurrentImageUrl(id = '0') {
-    const token=await accounts[0][5];
+    const token = await accounts[0][5];
     return await new Promise((resolve, reject) => {
         const ws = new WebSocket('wss://gql-realtime-2.reddit.com/query', 'graphql-ws', {
             headers: {
@@ -433,14 +435,10 @@ function sanetizeTokens(list) {
     return list.map(sanetizeToken)
 }
 
-var ordersData = async function() { return { structure: {} } }();
-var canvas;
 
 function updateWork() {
 
-    ordersData = async function() {
-        return updateOrders(await ordersData)
-    }
+    ordersData = updateOrders(ordersData);
 
     canvas = async function() {
         var map0;
@@ -461,12 +459,14 @@ function updateWork() {
     }()
 }
 
-function updateOrders(orders) {
-    return fetch(`https://raw.githubusercontent.com/etonaly/pixel/main/pixel.json`, { cache: "no-store" }).then(async (response) => {
+async function updateOrders(prev) {
+    try {
+        signale.info("fetching work order");
+        const response = await fetch(`https://raw.githubusercontent.com/etonaly/pixel/main/pixel.json`, { cache: "no-store" });
         if (!response.ok) return signale.warn('Bestellungen können nicht geladen werden!');
         const data = await response.json();
-
-        if (JSON.stringify(data) !== JSON.stringify(orders)) {
+        signale.info("received new work order");
+        if (JSON.stringify(data) !== JSON.stringify(await prev)) {
             const structureCount = Object.keys(data.structures).length;
             let pixelCount = 0;
             for (const structureName in data.structures) {
@@ -476,5 +476,8 @@ function updateOrders(orders) {
         }
 
         return data;
-    }).catch((e) => { signale.warn('Bestellungen können nicht geladen werden!', e); return { structures: {} }; });
+    } catch (e) {
+        signale.warn('Bestellungen können nicht geladen werden!', e);
+        return await prev;
+    }
 }
