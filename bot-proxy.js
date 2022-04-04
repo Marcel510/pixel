@@ -25,7 +25,7 @@ signale.config({
 });
 
 
-var ordersData = async function() { return { structures: {},priorities: {} } }();
+var ordersData = async function() { return { structures: {}, priorities: {} } }();
 var canvas;
 const VERSION_NUMBER = 1;
 
@@ -37,6 +37,7 @@ if (args.length < 1) {
 
 const accounts = readFileSync(args[0], { encoding: "utf-8" }).trim().split("\n").map((value) => {
     let a = value.split(";");
+    a[0] = parseInt(a[0].split(":")[1])//get port
     a.push(null);
     a.push(null);
     a.push(null);
@@ -45,32 +46,25 @@ const accounts = readFileSync(args[0], { encoding: "utf-8" }).trim().split("\n")
 
 for (const entry of accounts.slice(1)) {
     //https://stackoverflow.com/a/49611762
-    const auth = 'Basic ' + Buffer.from(entry[0] + ':' + entry[1]).toString('base64');
 
     entry[3] = new Promise((resolve, reject) => {
         request({
             host: "de.smartproxy.com",
-            port: 20001,
+            port: entry[0],
             method: "CONNECT",
-            path: "reddit.com:443",
-            headers: {
-                'Proxy-Authorization': auth
-            }
+            path: "reddit.com:443"
         }).on("connect", (res, socket) => {
-            if (res.statuscode() == 200) {
-                resolve(new Agent({ socket }));
-            }
-        }).on("error", err => reject(err))
+                if (res.statuscode() == 200) {
+                    resolve(new Agent({ socket }));
+                }
+            }).on("error", err => reject(err))
     });
     entry[4] = new Promise((resolve, reject) => {
         request({
             host: "de.smartproxy.com",
-            port: 20001,
+            port: entry[0],
             method: "CONNECT",
-            path: "gql-realtime-2.reddit.com:443",
-            headers: {
-                'Proxy-Authorization': auth
-            }
+            path: "gql-realtime-2.reddit.com:443"
         }).on("connect", (res, socket) => {
             if (res.statuscode() == 200) {
                 resolve(new Agent({ socket }));
@@ -165,7 +159,7 @@ async function shuffleWeighted(array) {
 
 async function getPixelList() {
     const structures = [];
-    const placeOrders=(await ordersData);
+    const placeOrders = (await ordersData);
     for (const structureName in placeOrders.structures) {
         await shuffleWeighted(placeOrders.structures[structureName].pixels);
         structures.push(placeOrders.structures[structureName]);
@@ -178,9 +172,9 @@ async function refreshToken(entry) {
 
     const response = await fetch("https://www.reddit.com/r/place/", {
         headers: {
-            cookie: `reddit_session=${entry[2]}`
+            cookie: `reddit_session=${entry[1]}`
         },
-        agent: entry[3] === null ? undefined : await entry[3]
+        agent: entry[3] === null ? undefined : await entry[2]
     });
     const responseText = await response.text();
     signale.info("refreshed token")
@@ -190,7 +184,7 @@ async function refreshToken(entry) {
 function refreshTokens() {
     for (const i in accounts) {
         const entry = accounts[i];
-        entry[5] = refreshToken(entry);
+        entry[4] = refreshToken(entry);
     }
 }
 
@@ -226,7 +220,7 @@ async function attemptPlace(entry) {
 
         const time = new Date().getTime();
 
-        setRgbaAt(rgbaCanvas, x, y, rgbaAtLocation[0], rgbaAtLocation[1], rgbaAtLocation[2], rgbaAtLocation[3])
+        setRgbaAt(rgbaCanvas, x, y, colorId)
         let nextAvailablePixelTimestamp = await place(x, y, colorId, entry) ?? new Date(time + 1000 * 60 * 5 + 1000 * 15)
 
         // Sanity check timestamp
@@ -262,7 +256,7 @@ async function attemptPlace(entry) {
  * @returns {Promise<number>}
  */
 async function place(x, y, color, entry) {
-    const token = await entry[5];
+    const token = await entry[4];
     const response = await fetch('https://gql-realtime-2.reddit.com/query', {
         method: 'POST',
         body: JSON.stringify({
@@ -312,7 +306,7 @@ async function place(x, y, color, entry) {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         },
-        agent: entry[4] === null ? undefined : await entry[4]
+        agent: entry[3] === null ? undefined : await entry[3]
     });
     const data = await response.json()
     if (data.errors != undefined) {
@@ -326,7 +320,7 @@ async function place(x, y, color, entry) {
 
 
 async function getCurrentImageUrl(id = '0') {
-    const token = await accounts[0][5];
+    const token = await accounts[0][4];
     return await new Promise((resolve, reject) => {
         const ws = new WebSocket('wss://gql-realtime-2.reddit.com/query', 'graphql-ws', {
             headers: {
