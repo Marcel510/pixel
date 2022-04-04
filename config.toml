@@ -97,3 +97,17 @@ file = "images/rwth+fh.png"
 startx = 1232
 starty = 1198
 priority = 3
+
+[[structure]]
+name = "logo_left"
+file = "images/tum_small.png"
+startx = 1109
+starty = 1171
+priority = 3
+
+[[structure]]
+name = "lmao"
+file = "images/lmu.png"
+startx = 1241
+starty = 1191
+priority = 1
