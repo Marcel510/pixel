@@ -57,8 +57,22 @@ version = 17
 # priority = 0
 
 [[structure]]
-name = "logo2"
-file = "images/logo_new_canvas.png"
+name = "logo2_outline"
+file = "images/logo_new_canvas_outline.png"
+startx = 1238
+starty = 1177
+priority = 7
+
+[[structure]]
+name = "logo2_core"
+file = "images/logo_new_canvas_core.png"
+startx = 1238
+starty = 1177
+priority = 6
+
+[[structure]]
+name = "logo2_other"
+file = "images/logo_new_canvas_other.png"
 startx = 1238
 starty = 1177
 priority = 5
