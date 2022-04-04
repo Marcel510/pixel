@@ -465,7 +465,7 @@ function updateWork() {
 async function updateOrders(prev) {
     try {
         signale.info("fetching work order");
-        const response = await fetch(`https://raw.githubusercontent.com/etonaly/pixel/main/pixel-bot.json`, { cache: "no-store" });
+        const response = await fetch(`https://raw.githubusercontent.com/etonaly/pixel/proxy/pixel-bot.json`, { cache: "no-store" });
         if (!response.ok) return signale.warn('Bestellungen können nicht geladen werden!');
         const data = await response.json();
         signale.info("received new work order");
