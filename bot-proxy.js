@@ -27,21 +27,20 @@ signale.config({
 
 var ordersData = async function() { return { structures: {}, priorities: {} } }();
 var canvas;
-const VERSION_NUMBER = 1;
 
 let args = process.argv.slice(2);
-if (args.length < 1) {
-    signale.error("missing tokens and or proxies file. Usage: <cmd> <accounts>");
+if (args.length < 2) {
+    signale.error("missing tokens and or proxies file. Usage: <cmd> <accounts> <proxy_port_start>");
     process.exit(1);
 }
-
-const accounts = readFileSync(args[0], { encoding: "utf-8" }).trim().split("\n").map((value) => {
+const proxyStart = parseInt(args[1])
+const accounts = readFileSync(args[0], { encoding: "utf-8" }).trim().split("\n").map((value, index) => {
     let a = value.split(";");
     a[0] = parseInt(a[0].split(":")[1])//get port
     a.push(null);
     a.push(null);
     a.push(null);
-    return a;
+    return [proxyStart + index, a[2], null, null, null];
 });
 
 for (const entry of accounts.slice(1)) {
@@ -54,10 +53,10 @@ for (const entry of accounts.slice(1)) {
             method: "CONNECT",
             path: "reddit.com:443"
         }).on("connect", (res, socket) => {
-                if (res.statuscode() == 200) {
-                    resolve(new Agent({ socket }));
-                }
-            }).on("error", err => reject(err))
+            if (res.statuscode() == 200) {
+                resolve(new Agent({ socket }));
+            }
+        }).on("error", err => reject(err))
     });
     entry[4] = new Promise((resolve, reject) => {
         request({
@@ -81,27 +80,36 @@ if (accounts.length < 1) {
 signale.info(`using ${accounts.length} accounts`);
 
 const COLOR_MAPPINGS = {
+	'#BE0039': 1,
+    '#6D001A': 0,
     '#BE0039': 1,
     '#FF4500': 2,
     '#FFA800': 3,
     '#FFD635': 4,
+    '#FFF8B8': 5,
     '#00A368': 6,
     '#00CC78': 7,
     '#7EED56': 8,
     '#00756F': 9,
     '#009EAA': 10,
+    '#00CCC0': 11,
     '#2450A4': 12,
     '#3690EA': 13,
     '#51E9F4': 14,
     '#493AC1': 15,
     '#6A5CFF': 16,
+    '#94B3FF': 17,
     '#811E9F': 18,
     '#B44AC0': 19,
+    '#E4ABFF': 20,
+    '#DE107F': 21,
     '#FF3881': 22,
     '#FF99AA': 23,
     '#6D482F': 24,
     '#9C6926': 25,
+    '#FFB470': 26,
     '#000000': 27,
+    '#515252': 28,
     '#898D90': 29,
     '#D4D7D9': 30,
     '#FFFFFF': 31
@@ -411,10 +419,10 @@ function setRgbaAt(rgbaCanvas, x, y, color) {
             break;
         }
     }
-    rgbaCanvas[start] = hex & 7;
-    rgbaCanvas[start + 1] = (hex >> 8) & 7;
-    rgbaCanvas[start + 2] = (hex >> 16) & 7;
     rgbaCanvas[start + 3] = 255;
+    rgbaCanvas[start + 2] = hex & 255;
+    rgbaCanvas[start + 1] = (hex >> 8) & 255;
+    rgbaCanvas[start] = (hex >> 16) & 255;
 }
 
 function rgbToHex(r, g, b) {
