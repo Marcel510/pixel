@@ -59,6 +59,7 @@ version = 17
 [[structure]]
 name = "logo2"
 file = "images/logo_new_canvas.png"
+priority_file = "images/logo_new_canvas_prio.png"
 startx = 1238
 starty = 1177
 priority = 5
