@@ -6,7 +6,8 @@
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
-    "standalone": "node bot-standalone.js"
+    "standalone": "node bot-standalone.js",
+    "proxy": "node bot-proxy.js"
   },
   "dependencies": {
     "fastify": "^3.27.4",
